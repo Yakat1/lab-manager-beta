@@ -1022,6 +1022,130 @@ def render_reagent_database():
                 st.markdown("---")
 
 
+# --- Plate Designer Page ---
+def render_plate_designer():
+    """Render the 96-well plate designer."""
+    st.markdown("# 🧬 96-Well Plate Designer")
+    st.markdown("Design your ELISA or assay layout. Select a tool and apply to wells.")
+
+    # Tools Sidebar (Top)
+    st.markdown("### 🛠️ Tools")
+    t_col1, t_col2, t_col3, t_col4 = st.columns([1, 1, 1, 1])
+    
+    with t_col1:
+        brush_type = st.selectbox(
+            "Brush Type", 
+            ["Standard", "Sample", "Blank", "PosCtrl", "NegCtrl", "Empty"],
+            key="p_brush_type"
+        )
+        st.session_state.plate_brush_type = brush_type
+
+    with t_col2:
+        brush_label = st.text_input("Label (Optional)", key="p_brush_label")
+        st.session_state.plate_brush_label = brush_label
+        
+    with t_col3:
+        # Bulk Actions
+        st.markdown("**Bulk Apply**")
+        row_char = st.selectbox("Row", ["A", "B", "C", "D", "E", "F", "G", "H"], key="bulk_row")
+        if st.button(f"Fill Row {row_char}"):
+            for c in range(1, 13):
+                wid = f"{row_char}{c}"
+                st.session_state.plate_grid[wid] = {
+                    "type": st.session_state.plate_brush_type,
+                    "label": st.session_state.plate_brush_label
+                }
+            st.rerun()
+            
+    with t_col4:
+        st.markdown("**Bulk Apply**")
+        col_idx = st.number_input("Col", 1, 12, 1, key="bulk_col")
+        if st.button(f"Fill Col {col_idx}"):
+            for r in "ABCDEFGH":
+                wid = f"{r}{col_idx}"
+                st.session_state.plate_grid[wid] = {
+                    "type": st.session_state.plate_brush_type,
+                    "label": st.session_state.plate_brush_label
+                }
+            st.rerun()
+
+    st.markdown("---")
+
+    # 96-Well Grid Visualization
+    st.markdown("### 🖱️ Plate Layout")
+    
+    # Header Row
+    cols = st.columns([0.5] + [1]*12)
+    for i in range(1, 13):
+        cols[i].markdown(f"**{i}**", unsafe_allow_html=True)
+        
+    rows = "ABCDEFGH"
+    for r in rows:
+        cols = st.columns([0.5] + [1]*12)
+        cols[0].markdown(f"**{r}**")
+        
+        for c in range(1, 13):
+            wid = f"{r}{c}"
+            # get current state
+            curr = st.session_state.plate_grid.get(wid, {"type": "Empty", "label": ""})
+            c_type = curr["type"]
+            c_label = curr.get("label", "")
+            
+            # Label display (shortened)
+            disp_txt = c_label if c_label else (c_type if c_type != 'Empty' else '.')
+            if len(disp_txt) > 4: disp_txt = disp_txt[:3] + "."
+            
+            # Emoji map for quick visual
+            emo = {"Standard": "🔵", "Sample": "🟢", "Blank": "⚪", "PosCtrl": "➕", "NegCtrl": "➖", "Empty": "⭕"}
+            btn_txt = f"{emo.get(c_type, '')}\n{disp_txt}"
+            
+            if cols[c].button(btn_txt, key=f"btn_{wid}", use_container_width=True):
+                # Apply Brush
+                st.session_state.plate_grid[wid] = {
+                    "type": st.session_state.plate_brush_type,
+                    "label": st.session_state.plate_brush_label
+                }
+                st.rerun()
+
+    st.markdown("---")
+    
+    # Save & Export
+    st.markdown("### 💾 Save & Export")
+    ex_c1, ex_c2 = st.columns(2)
+    
+    with ex_c1:
+        st.markdown("**Save Map**")
+        map_name = st.text_input("Map Name", "My Plate 1")
+        if st.button("Save Plate Map"):
+            success, msg = save_plate_map(map_name, st.session_state.plate_grid)
+            if success: st.success(msg)
+            else: st.error(msg)
+            
+        st.markdown("**Load Map**")
+        saved_maps = load_plate_maps()
+        map_names = [m["name"] for m in saved_maps]
+        load_sel = st.selectbox("Select Map", ["Select..."] + map_names)
+        if load_sel != "Select..." and st.button("Load"):
+            sel_map = next(m for m in saved_maps if m["name"] == load_sel)
+            st.session_state.plate_grid = sel_map["data"]
+            st.success(f"Loaded {load_sel}!")
+            st.rerun()
+
+    with ex_c2:
+        st.markdown("**Export PDF**")
+        if st.button("Generate Plate PDF"):
+            try:
+                pdf_bytes = create_plate_pdf(map_name, st.session_state.plate_grid)
+                st.download_button(
+                    label="⬇️ Download PDF",
+                    data=pdf_bytes,
+                    file_name=f"{map_name.replace(' ', '_')}.pdf",
+                    mime="application/pdf"
+                )
+            except Exception as e:
+                st.error(f"PDF Error: {e}")
+
+
 # --- Unit Converter Page ---
 def render_unit_converter():
     """Render the unit converter page."""
