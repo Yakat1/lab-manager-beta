@@ -690,16 +690,31 @@ def render_calculators():
         with b_col2:
             st.markdown("#### Result")
             
+            # Initialize session state for this result if not present
+            if "bottle_calc_result" not in st.session_state:
+                st.session_state.bottle_calc_result = None
+            
             if st.button("Calculate Molarity", type="primary", use_container_width=True):
-                # Calculate
+                # Calculate and store in session state
                 molarity, m_fmt = calculate_stock_molarity(b_mw, b_density, b_purity)
+                st.session_state.bottle_calc_result = {
+                    "molarity": molarity,
+                    "fmt": m_fmt,
+                    "defaults_used": defaults_used
+                }
+            
+            # Display Result if available
+            if st.session_state.bottle_calc_result:
+                res = st.session_state.bottle_calc_result
                 
-                if defaults_used:
+                # Check if defaults warning applies to CURRENT calculation
+                # (Ideally we re-check defaults logic, but storing it is fine for now)
+                if res["defaults_used"]:
                     st.warning("⚠️ **Warning:** Density or Purity not specified. Assuming **1.0 g/mL** and **100% Purity**.")
                 
                 st.markdown(f"""
                 <div class="result-card">
-                    <div class="result-value">{m_fmt}</div>
+                    <div class="result-value">{res['fmt']}</div>
                     <div class="result-label">Stock Molarity</div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -707,9 +722,10 @@ def render_calculators():
                 # Bonus: Moles in specific volume
                 st.markdown("---")
                 st.caption("How many moles in a specific volume?")
-                check_vol = st.number_input("Bottle Volume (mL)", value=1000.0, step=100.0)
+                check_vol = st.number_input("Bottle Volume (mL)", value=1000.0, step=100.0, key="bottle_vol_check")
+                
                 if check_vol > 0:
-                    total_moles = molarity * (check_vol / 1000.0)
+                    total_moles = res["molarity"] * (check_vol / 1000.0)
                     st.metric("Total Moles in Bottle", f"{total_moles:.3f} mol")
 
 
