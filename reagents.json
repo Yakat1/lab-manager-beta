@@ -1,0 +1,94 @@
+{
+    "reagents": [
+        {
+            "name": "Sodium Chloride (NaCl)",
+            "formula": "NaCl",
+            "mw": 58.44,
+            "purity": 99.5,
+            "category": "Salt",
+            "hazard": "None",
+            "storage": "Room Temperature"
+        },
+        {
+            "name": "Tris-HCl",
+            "formula": "C4H11NO3·HCl",
+            "mw": 157.6,
+            "purity": 99.0,
+            "category": "Buffer",
+            "hazard": "Irritant",
+            "storage": "Room Temperature"
+        },
+        {
+            "name": "Ethanol",
+            "formula": "C2H5OH",
+            "mw": 46.07,
+            "purity": 95.0,
+            "category": "Solvent",
+            "hazard": "Flammable",
+            "storage": "Flammables Cabinet"
+        },
+        {
+            "name": "EDTA Disodium",
+            "formula": "C10H14N2Na2O8·2H2O",
+            "mw": 372.24,
+            "purity": 99.0,
+            "category": "Chelator",
+            "hazard": "Irritant",
+            "storage": "Room Temperature"
+        },
+        {
+            "name": "Glucose",
+            "formula": "C6H12O6",
+            "mw": 180.16,
+            "purity": 99.5,
+            "category": "Sugar",
+            "hazard": "None",
+            "storage": "Room Temperature"
+        },
+        {
+            "name": "Potassium Chloride (KCl)",
+            "formula": "KCl",
+            "mw": 74.55,
+            "purity": 99.0,
+            "category": "Salt",
+            "hazard": "None",
+            "storage": "Room Temperature"
+        },
+        {
+            "name": "Magnesium Chloride (MgCl2)",
+            "formula": "MgCl2·6H2O",
+            "mw": 203.30,
+            "purity": 99.0,
+            "category": "Salt",
+            "hazard": "None",
+            "storage": "Room Temperature"
+        },
+        {
+            "name": "HEPES",
+            "formula": "C8H18N2O4S",
+            "mw": 238.30,
+            "purity": 99.5,
+            "category": "Buffer",
+            "hazard": "Irritant",
+            "storage": "Room Temperature"
+        },
+        {
+            "name": "SDS (Sodium Dodecyl Sulfate)",
+            "formula": "C12H25NaO4S",
+            "mw": 288.38,
+            "purity": 99.0,
+            "category": "Detergent",
+            "hazard": "Irritant",
+            "storage": "Room Temperature"
+        },
+        {
+            "name": "Glycerol",
+            "formula": "C3H8O3",
+            "mw": 92.09,
+            "purity": 99.5,
+            "category": "Cryoprotectant",
+            "hazard": "None",
+            "storage": "Room Temperature"
+        }
+    ]
+}

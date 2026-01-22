@@ -1,0 +1,42 @@
+{
+    "recipes": [
+        {
+            "name": "My Protocol",
+            "steps": [
+                {
+                    "step_number": 1,
+                    "reagent": "Sodium Chloride (NaCl)",
+                    "unit": "mL",
+                    "notes": "",
+                    "amount_per_L": 100.0
+                }
+            ]
+        },
+        {
+            "name": "Test",
+            "steps": [
+                {
+                    "step_number": 1,
+                    "reagent": "Ethanol",
+                    "unit": "mL",
+                    "notes": "",
+                    "amount_per_L": 111.111
+                },
+                {
+                    "step_number": 2,
+                    "reagent": "EDTA Disodium",
+                    "unit": "mg",
+                    "notes": "",
+                    "amount_per_L": 111.111
+                },
+                {
+                    "step_number": 3,
+                    "reagent": "Glucose",
+                    "unit": "\u00b5g",
+                    "notes": "",
+                    "amount_per_L": 111.111
+                }
+            ]
+        }
+    ]
+}
