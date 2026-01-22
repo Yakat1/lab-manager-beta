@@ -130,6 +130,32 @@ def calculate_stock_volume(
     return v1_L, format_volume(v1_L), diluent_L, format_volume(diluent_L)
 
 
+def calculate_stock_molarity(
+    mw: float,
+    density: float,
+    purity_percent: float
+) -> Tuple[float, str]:
+    """
+    Calculate molarity of a liquid reagent from bottle specifications.
+    Formula: M = (Density (g/mL) * Purity (%) * 10) / MW
+    
+    Returns: (Molarity in M, Formatted String)
+    """
+    if mw == 0:
+        return 0.0, "0 M"
+        
+    # Purity is entered as percentage (e.g. 37 for 37%), so we use the *10 shortcut
+    # Derivation: 
+    # Density (g/mL) * 1000 = g/L
+    # Purity (decimal) = Purity(%) / 100
+    # Mass in 1L = Density * 1000 * (Purity/100) = Density * Purity * 10
+    # Molarity = Mass in 1L / MW
+    
+    molarity = (density * purity_percent * 10) / mw
+    return molarity, f"{molarity:.2f} M"
+
+
+
 def calculate_percent_solution(
     mass: float,
     volume: float,

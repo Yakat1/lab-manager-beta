@@ -11,7 +11,9 @@ from calculations import (
     calculate_molarity,
     calculate_stock_volume,
     calculate_serial_dilution,
+    calculate_serial_dilution,
     calculate_percent_solution,
+    calculate_stock_molarity,
     scale_recipe,
     MassUnit,
     VolumeUnit,
@@ -396,7 +398,7 @@ def render_calculators():
     """Render the calculators page."""
     st.markdown("# 🧮 Laboratory Calculators")
     
-    tabs = st.tabs(["💊 Molarity Calculator", "🔬 Dilution Calculator", "📈 Serial Dilution", "📊 Percent Solution"])
+    tabs = st.tabs(["💊 Molarity Calculator", "🔬 Dilution Calculator", "📈 Serial Dilution", "📊 Percent Solution", "🧴 Bottle Molarity"])
     
     reagents = load_reagents()
     reagent_names = ["Custom"] + [r["name"] for r in reagents]
@@ -621,6 +623,49 @@ def render_calculators():
                 <div class="result-label">Percent Weight/Volume Solution</div>
             </div>
             """, unsafe_allow_html=True)
+
+    # --- Bottle Molarity Tab ---
+    with tabs[4]:
+        st.markdown("### 🧴 Bottle Molarity Calculator")
+        st.markdown("Calculate the molarity of a concentrated liquid reagent using bottle specifications.")
+        
+        b_col1, b_col2 = st.columns(2)
+        
+        with b_col1:
+            # Reagent Selection (to auto-fill MW)
+            b_reagent = st.selectbox("Select Reagent", reagent_names, key="bottle_reagent")
+            
+            if b_reagent == "Custom":
+                b_mw = st.number_input("Molecular Weight (MW)", min_value=0.01, value=36.46, step=0.01, help="g/mol")
+            else:
+                r_data = next((r for r in reagents if r["name"] == b_reagent), None)
+                b_mw = r_data["mw"] if r_data else 36.46
+                st.info(f"**MW:** {b_mw} g/mol")
+                
+            b_density = st.number_input("Density (Specific Gravity)", min_value=0.1, value=1.19, step=0.01, help="g/mL or g/cm³")
+            b_purity = st.number_input("Purity (%)", min_value=0.1, max_value=100.0, value=37.0, step=0.1, help="Percentage by weight")
+            
+        with b_col2:
+            st.markdown("#### Result")
+            
+            if st.button("Calculate Molarity", type="primary", use_container_width=True):
+                # Calculate
+                molarity, m_fmt = calculate_stock_molarity(b_mw, b_density, b_purity)
+                
+                st.markdown(f"""
+                <div class="result-card">
+                    <div class="result-value">{m_fmt}</div>
+                    <div class="result-label">Stock Molarity</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Bonus: Moles in specific volume
+                st.markdown("---")
+                st.caption("How many moles in a specific volume?")
+                check_vol = st.number_input("Bottle Volume (mL)", value=1000.0, step=100.0)
+                if check_vol > 0:
+                    total_moles = molarity * (check_vol / 1000.0)
+                    st.metric("Total Moles in Bottle", f"{total_moles:.3f} mol")
 
 
 # --- Protocol Designer Page ---
@@ -1199,6 +1244,10 @@ def render_unit_converter():
         col2.metric("mM", f"{conc_M * 1000:.6g}")
         col3.metric("µM", f"{conc_M * 1000000:.6g}")
         col4.metric("nM", f"{conc_M * 1000000000:.6g}")
+
+    # --- Bottle Molarity Tab (Injecting into calculators, not unit converter) ---
+    # Wait, the above context is Unit Converter. I need to be in render_calculators tabs[4].
+    # Let me re-target the render_calculators function body.
 
 
 # --- Main App ---
