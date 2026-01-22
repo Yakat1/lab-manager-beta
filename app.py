@@ -1262,7 +1262,7 @@ def render_unit_converter():
     """Render the unit converter page."""
     st.markdown("# 📊 Unit Converter")
     
-    tabs = st.tabs(["Mass", "Volume", "Concentration"])
+    tabs = st.tabs(["Mass", "Volume", "Concentration (Molar)", "Conc (Mass/Vol)"])
     
     with tabs[0]:
         st.markdown("### Mass Converter")
@@ -1293,7 +1293,7 @@ def render_unit_converter():
         col3.metric("µL", f"{vol_L * 1000000:.6g}")
     
     with tabs[2]:
-        st.markdown("### Concentration Converter")
+        st.markdown("### Molar Concentration")
         input_conc = st.number_input("Enter Concentration", min_value=0.0, value=1.0, step=0.1, key="conv_conc")
         input_unit = st.selectbox("From", ["M", "mM", "µM", "nM"], key="conv_conc_unit")
         
@@ -1301,10 +1301,39 @@ def render_unit_converter():
         conc_M = input_conc * conc_factors[input_unit]
         
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("M", f"{conc_M:.6g}")
-        col2.metric("mM", f"{conc_M * 1000:.6g}")
-        col3.metric("µM", f"{conc_M * 1000000:.6g}")
-        col4.metric("nM", f"{conc_M * 1000000000:.6g}")
+        col1.metric("M", f"{conc_M:.9g}")
+        col2.metric("mM", f"{conc_M * 1000:.9g}")
+        col3.metric("µM", f"{conc_M * 1000000:.9g}")
+        col4.metric("nM", f"{conc_M * 1000000000:.9g}")
+
+    with tabs[3]:
+        st.markdown("### Mass/Volume Concentration")
+        st.markdown("Convert between density-like concentrations (e.g. g/mL, mg/dL).")
+        
+        mv_val = st.number_input("Enter Value", min_value=0.0, value=1.0, step=0.1, key="conv_mv")
+        mv_unit = st.selectbox("From", ["g/mL", "g/L", "mg/mL", "µg/mL", "mg/dL"], key="conv_mv_unit")
+        
+        # Base unit: g/L
+        # g/mL = 1000 g/L
+        # mg/mL = 1 g/L
+        # µg/mL = 0.001 g/L
+        # mg/dL = 0.01 g/L (1 mg / 100 mL = 0.001g / 0.1L = 0.01 g/L)
+        
+        mv_factors = {
+            "g/mL": 1000.0,
+            "g/L": 1.0,
+            "mg/mL": 1.0,
+            "µg/mL": 0.001,
+            "mg/dL": 0.01
+        }
+        
+        val_gL = mv_val * mv_factors[mv_unit]
+        
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("g/mL", f"{val_gL / 1000.0:.9g}")
+        c2.metric("g/L (mg/mL)", f"{val_gL:.9g}")
+        c3.metric("µg/mL", f"{val_gL * 1000.0:.9g}")
+        c4.metric("mg/dL", f"{val_gL * 100.0:.9g}")
 
     # --- Bottle Molarity Tab (Injecting into calculators, not unit converter) ---
     # Wait, the above context is Unit Converter. I need to be in render_calculators tabs[4].
