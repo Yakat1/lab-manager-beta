@@ -71,6 +71,12 @@ st.markdown("""
         --text-muted: #94a3b8;
     }
     
+    /* Global styles */
+    .stApp {
+        background-color: var(--bg-dark);
+        color: var(--text);
+    }
+    
     /* Sidebar styling */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
@@ -175,10 +181,9 @@ st.markdown("""
     
     /* Header styling */
     h1 {
-        background: linear-gradient(90deg, #6366f1, #22d3ee);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: #6366f1;
+        font-weight: 800;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 </style>
 """, unsafe_allow_html=True)
