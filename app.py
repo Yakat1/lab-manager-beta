@@ -48,6 +48,20 @@ COMMON_RECIPES = {
     ]
 }
 
+# --- Common Concentrates Data ---
+COMMON_CONCENTRATES = {
+    "Hydrochloric Acid (37%)": {"mw": 36.46, "density": 1.19, "purity": 37.0},
+    "Sulfuric Acid (98%)": {"mw": 98.08, "density": 1.84, "purity": 98.0},
+    "Nitric Acid (70%)": {"mw": 63.01, "density": 1.41, "purity": 70.0},
+    "Acetic Acid (Glacial, 100%)": {"mw": 60.05, "density": 1.05, "purity": 100.0},
+    "Ethanol (96%)": {"mw": 46.07, "density": 0.789, "purity": 96.0},
+    "Ethanol (Absolute, 100%)": {"mw": 46.07, "density": 0.789, "purity": 100.0},
+    "Methanol (100%)": {"mw": 32.04, "density": 0.792, "purity": 100.0},
+    "Isopropanol (100%)": {"mw": 60.10, "density": 0.786, "purity": 100.0},
+    "Phosphoric Acid (85%)": {"mw": 98.00, "density": 1.685, "purity": 85.0},
+    "Sodium Hydroxide (50% w/w)": {"mw": 40.00, "density": 1.525, "purity": 50.0},
+}
+
 # --- Page Configuration ---
 st.set_page_config(
     page_title="Lab Assistant",
@@ -629,21 +643,49 @@ def render_calculators():
         st.markdown("### 🧴 Bottle Molarity Calculator")
         st.markdown("Calculate the molarity of a concentrated liquid reagent using bottle specifications.")
         
+        mode = st.radio("Mode", ["Common Reagents", "Custom"], horizontal=True, key="bottle_mode")
+        
         b_col1, b_col2 = st.columns(2)
         
+        defaults_used = False
+        
         with b_col1:
-            # Reagent Selection (to auto-fill MW)
-            b_reagent = st.selectbox("Select Reagent", reagent_names, key="bottle_reagent")
-            
-            if b_reagent == "Custom":
-                b_mw = st.number_input("Molecular Weight (MW)", min_value=0.01, value=36.46, step=0.01, help="g/mol")
-            else:
-                r_data = next((r for r in reagents if r["name"] == b_reagent), None)
-                b_mw = r_data["mw"] if r_data else 36.46
-                st.info(f"**MW:** {b_mw} g/mol")
+            if mode == "Common Reagents":
+                b_preset = st.selectbox("Select Concentrated Reagent", list(COMMON_CONCENTRATES.keys()), key="bottle_preset")
+                data = COMMON_CONCENTRATES[b_preset]
+                b_mw = data["mw"]
+                b_density = data["density"]
+                b_purity = data["purity"]
                 
-            b_density = st.number_input("Density (Specific Gravity)", min_value=0.1, value=1.19, step=0.01, help="g/mL or g/cm³")
-            b_purity = st.number_input("Purity (%)", min_value=0.1, max_value=100.0, value=37.0, step=0.1, help="Percentage by weight")
+                st.info(f"""
+                **Properties:**
+                *   MW: {b_mw} g/mol
+                *   Density: {b_density} g/mL
+                *   Purity: {b_purity}%
+                """)
+                
+            else:
+                # Custom Mode
+                b_mw = st.number_input("Molecular Weight (MW)", min_value=0.01, value=36.46, step=0.01, help="Required")
+                
+                # Optional Inputs (Density & Purity)
+                # We use value=0.0 as "empty" since streamlit doesn't support None for number_input easily without session state hacks
+                # Logic: If 0 or empty, assume defaults.
+                
+                b_density_in = st.number_input("Density (g/mL)", min_value=0.0, value=0.0, step=0.01, help="Leave 0 for default (1.0)")
+                b_purity_in = st.number_input("Purity (%)", min_value=0.0, max_value=100.0, value=0.0, step=0.1, help="Leave 0 for default (100%)")
+                
+                if b_density_in > 0:
+                    b_density = b_density_in
+                else:
+                    b_density = 1.0
+                    defaults_used = True
+                    
+                if b_purity_in > 0:
+                    b_purity = b_purity_in
+                else:
+                    b_purity = 100.0
+                    defaults_used = True # If user didn't specify purity, we assume 100% but warn
             
         with b_col2:
             st.markdown("#### Result")
@@ -651,6 +693,9 @@ def render_calculators():
             if st.button("Calculate Molarity", type="primary", use_container_width=True):
                 # Calculate
                 molarity, m_fmt = calculate_stock_molarity(b_mw, b_density, b_purity)
+                
+                if defaults_used:
+                    st.warning("⚠️ **Warning:** Density or Purity not specified. Assuming **1.0 g/mL** and **100% Purity**.")
                 
                 st.markdown(f"""
                 <div class="result-card">
