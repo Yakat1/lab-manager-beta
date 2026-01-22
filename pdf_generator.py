@@ -78,10 +78,94 @@ def create_protocol_pdf(protocol_name, final_volume, volume_unit, steps, hazards
         pdf.cell(col_widths[2], 8, f"{step['amount']} {step['unit']}", border=1)
         pdf.cell(col_widths[3], 8, step.get('notes', ''), border=1, new_x="LMARGIN", new_y="NEXT")
         
-    # Disclaimer
-    pdf.ln(15)
-    pdf.set_font("helvetica", "I", 8)
-    pdf.set_text_color(128, 128, 128)
-    pdf.multi_cell(0, 5, "Disclaimer: Reagent amounts and safety information should be verified before use. The authors assume no liability for experimental outcomes.", new_x="LMARGIN", new_y="NEXT")
+    return bytes(pdf.output())
+
+def create_plate_pdf(plate_name, plate_data):
+    """
+    Generate a PDF specifically for a Plate Map.
     
+    Args:
+        plate_name (str): Name of the plate
+        plate_data (dict): Dictionary mapping well ID (e.g. "A1") to data {"type":..., "label":...}
+        
+    Returns:
+        bytes: PDF content
+    """
+    pdf = ProtocolPDF()
+    pdf.add_page()
+    
+    # Title
+    pdf.set_font("helvetica", "B", 16)
+    pdf.cell(0, 10, f"Plate Map: {plate_name}", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("helvetica", "", 10)
+    pdf.cell(0, 10, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}", new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(5)
+    
+    # Draw Grid
+    # 8 rows (A-H), 12 cols (1-12)
+    # Cell size
+    w = 14
+    h = 10
+    
+    # Header Row (1-12)
+    pdf.cell(10, h, "", border=0) # Corner filler
+    pdf.set_font("helvetica", "B", 8)
+    for col in range(1, 13):
+        pdf.cell(w, h, str(col), border=0, align='C')
+    pdf.ln(h)
+    
+    rows = "ABCDEFGH"
+    
+    # Legend Colors (RGB)
+    colors = {
+        "Standard": (173, 216, 230),   # Light Blue
+        "Sample": (144, 238, 144),     # Light Green
+        "Blank": (211, 211, 211),      # Light Grey
+        "PosCtrl": (255, 182, 193),    # Light Pink
+        "NegCtrl": (255, 255, 224),    # Light Yellow
+        "Empty": (255, 255, 255)       # White
+    }
+    
+    pdf.set_font("helvetica", "", 8)
+    
+    for r_idx, row_char in enumerate(rows):
+        # Row Header (A-H)
+        pdf.set_font("helvetica", "B", 10)
+        pdf.cell(10, h, row_char, border=0, align='C')
+        pdf.set_font("helvetica", "", 7)
+        
+        for col in range(1, 13):
+            well_id = f"{row_char}{col}"
+            well_info = plate_data.get(well_id, {"type": "Empty", "label": ""})
+            w_type = well_info.get("type", "Empty")
+            w_label = well_info.get("label", "")
+            
+            # Set Color
+            c = colors.get(w_type, (255, 255, 255))
+            pdf.set_fill_color(c[0], c[1], c[2])
+            
+            # Content
+            text = w_label if w_label else w_type if w_type != "Empty" else ""
+            
+            # Truncate text if too long
+            if len(text) > 8:
+                text = text[:7] + "."
+                
+            pdf.cell(w, h, text, border=1, fill=True, align='C')
+            
+        pdf.ln(h)
+        
+    # Legend
+    pdf.ln(10)
+    pdf.set_font("helvetica", "B", 10)
+    pdf.cell(0, 10, "Legend:", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("helvetica", "", 10)
+    
+    for t_name, t_color in colors.items():
+        if t_name == "Empty": continue
+        pdf.set_fill_color(t_color[0], t_color[1], t_color[2])
+        pdf.cell(10, 6, "", border=1, fill=True)
+        pdf.cell(30, 6, f" {t_name}", border=0)
+        pdf.ln(8)
+        
     return bytes(pdf.output())

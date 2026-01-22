@@ -20,7 +20,7 @@ from calculations import (
     format_volume,
     format_concentration,
 )
-from pdf_generator import create_protocol_pdf
+from pdf_generator import create_protocol_pdf, create_plate_pdf
 
 # --- Common Recipes Data ---
 COMMON_RECIPES = {
@@ -264,6 +264,72 @@ def save_user_recipe_to_file(name, steps, base_vol_L):
     except Exception as e:
         return False, f"Error saving recipe: {str(e)}"
 
+# --- Load/Save Plate Maps ---
+def load_plate_maps():
+    """Load plate maps from JSON."""
+    path = Path(__file__).parent / "plate_maps.json"
+    try:
+        with open(path, "r") as f:
+            data = json.load(f)
+            return data.get("plate_maps", [])
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def save_plate_map(name, plate_data):
+    """Save a plate map."""
+    path = Path(__file__).parent / "plate_maps.json"
+    
+    new_map = {
+        "name": name,
+        "data": plate_data,
+        "updated": datetime.now().strftime("%Y-%m-%d %H:%M")
+    }
+    
+    try:
+        existing = load_plate_maps()
+        existing = [m for m in existing if m["name"] != name]
+        existing.append(new_map)
+        
+        with open(path, "w") as f:
+            json.dump({"plate_maps": existing}, f, indent=4)
+        return True, "Plate map saved!"
+    except Exception as e:
+        return False, f"Error: {str(e)}"
+
+# --- Load/Save Plate Maps ---
+def load_plate_maps():
+    """Load plate maps from JSON."""
+    path = Path(__file__).parent / "plate_maps.json"
+    try:
+        with open(path, "r") as f:
+            data = json.load(f)
+            return data.get("plate_maps", [])
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def save_plate_map(name, plate_data):
+    """Save a plate map."""
+    path = Path(__file__).parent / "plate_maps.json"
+    
+    new_map = {
+        "name": name,
+        "data": plate_data,
+        "updated": datetime.now().strftime("%Y-%m-%d %H:%M")
+    }
+    
+    try:
+        existing = load_plate_maps()
+        existing = [m for m in existing if m["name"] != name]
+        existing.append(new_map)
+        
+        with open(path, "w") as f:
+            json.dump({"plate_maps": existing}, f, indent=4)
+        return True, "Plate map saved!"
+    except Exception as e:
+        return False, f"Error: {str(e)}"
+
+
+
 
 
 
@@ -276,6 +342,17 @@ def init_session_state():
         st.session_state.protocol_total_volume = 100.0
     if "protocol_volume_unit" not in st.session_state:
         st.session_state.protocol_volume_unit = "mL"
+    
+    
+    # Plate Designer State
+    if "plate_grid" not in st.session_state:
+        # Dictionary: "A1": {"type": "Empty", "label": ""}
+        st.session_state.plate_grid = {} 
+    if "plate_brush_type" not in st.session_state:
+        st.session_state.plate_brush_type = "Sample"
+    if "plate_brush_label" not in st.session_state:
+        st.session_state.plate_brush_label = ""
+
 
 
 # --- Sidebar Navigation ---
@@ -287,7 +364,7 @@ def render_sidebar():
         
         page = st.radio(
             "Navigation",
-            ["🧮 Calculators", "📋 Protocol Designer", "📚 Reagent Database", "📊 Unit Converter"],
+            ["🧮 Calculators", "📋 Protocol Designer", "🧬 96-Well Plate Designer", "📚 Reagent Database", "📊 Unit Converter"],
             label_visibility="collapsed"
         )
         
@@ -1005,6 +1082,8 @@ def main():
         render_calculators()
     elif page == "📋 Protocol Designer":
         render_protocol_designer()
+    elif page == "🧬 96-Well Plate Designer":
+        render_plate_designer()
     elif page == "📚 Reagent Database":
         render_reagent_database()
     elif page == "📊 Unit Converter":
